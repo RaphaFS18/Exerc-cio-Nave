@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercício do Alien</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
+    <style> body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; } </style>
+</head>
+
+<body>
+    <script>
+        // Guarda a altura e largura da tela do jogo
+        const larguraJogo = 700;
+        const alturaJogo = 850;
+       
+        
+        // Pega as medidas guardadas e as usa no jogo
+        const config = {
+            type: Phaser.AUTO,
+            width: larguraJogo,
+            height: alturaJogo,
+
+            //Vamos adicionar a fisica do jogo como a gravidade
+            physics: {
+              default: 'arcade',
+              arcade: {
+                gravity: { y: 300},
+                debug: true
+              }
+            },
+
+            scene: {
+                preload: preload,
+                create: create,
+                update: update
+            }
+        };
+
+        // Cria o jogo com as características
+        const game = new Phaser.Game(config);
+
+        //Fazer a variavel do Alien
+        var alien;
+        var teclado;
+        var fogo;
+        var plataforma;
+        var moeda;
+        var pontuacao = 0;
+        var placar;
+
+        function preload() {
+            //Colocar a foto do fundo no jogo
+            this.load.image('background', 'assets/fundo.png');
+            //Colocar a foto da nave no jogo
+            this.load.image('player', 'assets/nave.png');
+            //Colocar foto do fogo
+            this.load.image('fogo', 'assets/fogo.png');
+            //Colocar o foguete
+            this.load.image('foguete', 'assets/foguete.png');
+            //Colocar a moeda
+            this.load.image('moeda', 'assets/moeda.png');
+            //Colocar o planeta
+            this.load.image('planeta', 'assets/planeta.png');
+
+          }
+
+        function create() {
+            // Adiciona as imagens
+            this.add.image(larguraJogo/2, alturaJogo/2, 'background');
+        
+         //Adicionar o fogo no jogo
+         fogo = this.add.sprite(0, 0, 'fogo');
+         fogo.setVisible(false);
+        
+            // Criar o alien no jogo com a mecanica
+        alien = this.physics.add.sprite(larguraJogo/2, 0, 'player');
+        alien.setCollideWorldBounds(true);
+
+        teclado = this.input.keyboard.createCursorKeys();
+
+        //Adicionar o foguete
+         plataforma = this.physics.add.staticGroup();
+         ///o -600 é a pocisao do foguete vertical e 2 horizontal
+            plataforma.create(larguraJogo/2, alturaJogo - 600, 'foguete').setScale(1).refreshBody();
+
+        this.physics.add.collider(alien, plataforma);
+
+        //Adicionar o planeta
+        plataforma = this.physics.add.staticGroup();
+         ///o -300 é a pocisao do planeta vertical e 3 horizontal
+            plataforma.create(larguraJogo/3, alturaJogo - 300, 'planeta').setScale(1).refreshBody();
+
+        this.physics.add.collider(alien, plataforma);
+
+
+       //Adicionar a moeda
+        moeda = this.physics.add.sprite(larguraJogo/2, 0, 'moeda');
+        moeda.setCollideWorldBounds(true);
+        moeda.setBounce(0.7);
+        this.physics.add.collider(moeda, plataforma);
+        
+        // adicionando placar 
+        placar = this.add.text(50, 50, 'Moedas:' + pontuacao, {fontSize:'45px', fill:'#495613'});
+
+        //Quando o alien encostar na moeda
+        this.physics.add.overlap(alien, moeda, function(){
+        moeda.setVisible(false); ///Moeda fica invisivel
+
+        var posicaoMoeda_Y = Phaser.Math.RND.between(50, 650); ///sorteia numero 
+        moeda.setPosition(posicaoMoeda_Y, 100); ///ajusta a posicao da moeda
+
+        pontuacao += 1;/// soma a pontuacao
+        placar.setText('Moedas:' + pontuacao);///atualiza o placar
+
+        moeda.setVisible(true);///ativa a visao da "nova moeda"
+        });
+      }
+
+        function update() {
+
+          //Movimento para esquerda
+          if (teclado.left.isDown) {
+            alien.setVelocityX(-150);}
+
+          //Movimento para direita
+          else if (teclado.right.isDown) {
+            alien.setVelocityX(150); }
+
+            //Sem movimento horizontal [ x = 0]
+            else {
+              alien.setVelocityX(0); }
+
+            //Movimento para cima
+            if(teclado.up.isDown) {
+              alien.setVelocityY(-150);
+              ativarFogo();
+            }
+
+            //Movimento para baixo [ Gravidade em Y]
+            else { semFogo(); }
+              
+            //Atualiza a posição do fogo em relacao a nave
+            fogo.setPosition(alien.x, alien.y + alien.height/2);  
+        }
+
+        function ativarFogo() {
+          fogo.setVisible(true);
+        }
+
+        function semFogo() {
+          fogo.setVisible(false);
+        } 
+            
+        
+    </script>
+</body>
+</html>
